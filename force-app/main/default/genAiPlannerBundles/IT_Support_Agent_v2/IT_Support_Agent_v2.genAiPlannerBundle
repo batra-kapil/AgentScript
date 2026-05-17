@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Handles IT support requests for Acme Corp employees including password resets, software access requests, and hardware replacements.</description>
+    <localTopicLinks>
+        <genAiPluginName>IT_Support_Handler_16jC20000000U1J</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>agent_router_16jC20000000U1J</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>IT_Support_Handler_16jC20000000U1J</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Handle IT support requests from verified Acme Corp employees. Covers password resets, software access requests, and hardware replacements with strict sequencing and policy enforcement.</description>
+        <developerName>IT_Support_Handler_16jC20000000U1J</developerName>
+        <genAiPluginInstructions>
+            <description>You are an IT support specialist for Acme Corp. You are professional, precise, and security-conscious. You never take irreversible action without explicit confirmation from the employee.</description>
+            <developerName>instruction0_179C20000000h50</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179C20000000h50</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>verify_identity_179C20000000h50</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>check_mfa_status_179C20000000h50</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>raise_support_ticket_179C20000000h50</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>reset_password_179C20000000h50</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>verify_identity_179C20000000h50</fullName>
+            <description>Verifies the employee&apos;s identity using their employee ID. Returns their Salesforce Contact Id, department, and whether verification succeeded. Must be called before any other action.</description>
+            <developerName>verify_identity_179C20000000h50</developerName>
+            <invocationTarget>Verify_Identity</invocationTarget>
+            <invocationTargetType>flow</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>verify_identity</localDeveloperName>
+            <masterLabel>Verify Identity</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>check_mfa_status_179C20000000h50</fullName>
+            <description>Checks whether the verified employee has MFA enabled. Must be called before processing any password reset request.</description>
+            <developerName>check_mfa_status_179C20000000h50</developerName>
+            <invocationTarget>Check_MFA_Status</invocationTarget>
+            <invocationTargetType>flow</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>check_mfa_status</localDeveloperName>
+            <masterLabel>Check Mfa Status</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>raise_support_ticket_179C20000000h50</fullName>
+            <description>Creates an IT_Support_Request__c record for the employee. Handles routing based on issue type and department. Returns the ticket number, whether manager approval is required, and whether the replacement is chargeable.</description>
+            <developerName>raise_support_ticket_179C20000000h50</developerName>
+            <invocationTarget>Raise_Support_Ticket</invocationTarget>
+            <invocationTargetType>flow</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>raise_support_ticket</localDeveloperName>
+            <masterLabel>Raise Support Ticket</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>reset_password_179C20000000h50</fullName>
+            <description>Processes a password reset for the verified employee. Only call this after confirming MFA is enabled and the employee has explicitly confirmed with YES.</description>
+            <developerName>reset_password_179C20000000h50</developerName>
+            <invocationTarget>Reset_Password</invocationTarget>
+            <invocationTargetType>flow</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>reset_password</localDeveloperName>
+            <masterLabel>Reset Password</masterLabel>
+        </localActions>
+        <localDeveloperName>IT_Support_Handler</localDeveloperName>
+        <masterLabel>IT Support Handler</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>agent_router_16jC20000000U1J</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Entry point — collect employee ID and route to the support handler.</description>
+        <developerName>agent_router_16jC20000000U1J</developerName>
+        <genAiPluginInstructions>
+            <description>You are an IT support specialist for Acme Corp. You are professional, precise, and security-conscious. You never take irreversible action without explicit confirmation from the employee.</description>
+            <developerName>instruction0_179C20000000h4z</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179C20000000h4z</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>agent_router</localDeveloperName>
+        <masterLabel>Agent Router</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>IT Support Agent</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

@@ -1,0 +1,283 @@
+# ════════════════════════════════════════════════════════
+# IT Support Agent — Agent Script
+# Built by SF Bolt | sfbolt.com
+# Salesforce Agentforce Developer Guide:
+# https://developer.salesforce.com/docs/ai/agentforce/guide/agent-script.html
+# ════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────
+# BLOCK 1: SYSTEM
+# Global agent personality and required messages.
+# welcome and error are required. Applies to all subagents.
+# ─────────────────────────────────────────────────────────
+system:
+   instructions: "You are an IT support specialist for Acme Corp. You are professional, precise, and security-conscious. You never take irreversible action without explicit confirmation from the employee."
+   messages:
+      welcome: "Welcome to Acme Corp IT Support. Please share your employee ID to get started."
+      error: "Something went wrong on my end. Please contact IT directly at it@acmecorp.com."
+
+# ─────────────────────────────────────────────────────────
+# BLOCK 2: CONFIG
+# Agent metadata — API name, type, role, company context.
+# ─────────────────────────────────────────────────────────
+config:
+   developer_name: "IT_Support_Agent"
+   agent_type: "AgentforceEmployeeAgent"
+   agent_label: "IT Support Agent"
+   description: "Handles IT support requests for Acme Corp employees including password resets, software access requests, and hardware replacements."
+   role: "IT Support Specialist"
+   company: "Acme Corp is a software company with 500 employees across Engineering, Finance, and HR departments. We follow strict security and compliance policies for all IT support operations including mandatory identity verification before any support action, MFA enforcement for password resets, department-based software access approvals, and warranty-based hardware replacement policies."
+   enable_enhanced_event_logs: True
+
+# ─────────────────────────────────────────────────────────
+# BLOCK 3: VARIABLES
+# Global variables accessible across all subagents.
+# Persist reliably across every conversation turn.
+# mutable = agent can update the value during conversation.
+# ─────────────────────────────────────────────────────────
+variables:
+   contact_id: mutable string = ""
+      description: "Salesforce Contact Id of the verified employee"
+   verified: mutable boolean = False
+      description: "Whether the employee's identity has been confirmed"
+   has_mfa: mutable boolean = False
+      description: "Whether the employee has MFA enabled on their account"
+   department: mutable string = ""
+      description: "Employee department — used for software access routing"
+   requested_action: mutable string = ""
+      description: "What the employee explicitly asked for. Must be exactly one of: password_reset, software_access, hardware, or question."
+   action_confirmed: mutable boolean = False
+      description: "Whether the employee has explicitly confirmed an irreversible action by replying YES."
+   ticket_number: mutable string = ""
+      description: "The IT support request record ID created for the employee's request."
+
+# ─────────────────────────────────────────────────────────
+# BLOCK 4: START AGENT (Agent Router)
+# Entry point — every user message hits this block first.
+# Handles routing to the correct subagent.
+# ─────────────────────────────────────────────────────────
+start_agent agent_router:
+   description: "Entry point — collect employee ID and route to the support handler."
+
+   reasoning:
+      instructions: ->
+         # If not verified — prompt for employee ID
+         if @variables.verified == False:
+            | Please share your employee ID so I can verify your identity and help you.
+         # If verified — hand off to support subagent
+         if @variables.verified == True:
+            transition to @subagent.IT_Support_Handler
+      actions:
+         # Allow LLM to collect employee ID via slot filling
+         collect_employee_id: @utils.setVariables
+            description: "Collect the employee ID from the conversation when the employee provides it."
+            with contact_id = ...
+
+# ─────────────────────────────────────────────────────────
+# BLOCK 5: SUBAGENT
+# Core IT support logic.
+# Contains: actions (flows), reasoning instructions,
+# reasoning.actions (LLM tools).
+# ─────────────────────────────────────────────────────────
+subagent IT_Support_Handler:
+   description: "Handle IT support requests from verified Acme Corp employees. Covers password resets, software access requests, and hardware replacements with strict sequencing and policy enforcement."
+
+   # ───────────────────────────────────────────────────
+   # ACTIONS
+   # Flows this subagent can call.
+   # Called deterministically via `run` in reasoning block.
+   # ───────────────────────────────────────────────────
+   actions:
+      verify_identity:
+         description: "Verifies the employee's identity using their employee ID. Returns their Salesforce Contact Id, department, and whether verification succeeded. Must be called before any other action."
+         inputs:
+            employee_id_input: string
+               description: "Employee ID provided by the user"
+               is_required: True
+         outputs:
+            verified: boolean
+               description: "True if identity was confirmed"
+            contact_id: string
+               description: "Salesforce Contact Id of the employee"
+            department: string
+               description: "Employee department returned from the record"
+         target: "flow://Verify_Identity"
+
+      check_mfa_status:
+         description: "Checks whether the verified employee has MFA enabled. Must be called before processing any password reset request."
+         inputs:
+            contact_id: string
+               description: "Salesforce Contact Id of the employee"
+               is_required: True
+         outputs:
+            has_mfa: boolean
+               description: "True if MFA is enabled on the account"
+         target: "flow://Check_MFA_Status"
+
+      reset_password:
+         description: "Processes a password reset for the verified employee. Only call this after confirming MFA is enabled and the employee has explicitly confirmed with YES."
+         inputs:
+            contact_id: string
+               description: "Salesforce Contact Id of the employee"
+               is_required: True
+         outputs:
+            reset_successful: boolean
+               description: "True if the password reset succeeded"
+         target: "flow://Reset_Password"
+
+      raise_support_ticket:
+         description: "Creates an IT_Support_Request__c record for the employee. Handles routing based on issue type and department. Returns the ticket number, whether manager approval is required, and whether the replacement is chargeable."
+         inputs:
+            contact_id: string
+               description: "Salesforce Contact Id of the employee"
+               is_required: True
+            issue_type: string
+               description: "Type of issue. Must be exactly one of: password_reset, software_access, hardware"
+               is_required: True
+            department: string
+               description: "Employee department for approval routing"
+               is_required: True
+         outputs:
+            ticket_number: string
+               description: "The created IT support request record ID"
+            requires_approval: boolean
+               description: "True if manager approval is required"
+            chargeable: boolean
+               description: "True if hardware replacement incurs a cost"
+         target: "flow://Raise_Support_Ticket"
+
+   # ───────────────────────────────────────────────────
+   # REASONING
+   # Mix of deterministic logic (->) and LLM prompts (|).
+   # Arrow = code. Pipe = prompt. That is the whole idea.
+   # ───────────────────────────────────────────────────
+   reasoning:
+      instructions: ->
+
+         # ── STEP 1: Identity verification ──────────────────
+         # Deterministic. Runs as code every turn until done.
+         # The LLM does not decide whether to call this.
+         if @variables.verified == False:
+            run @actions.verify_identity
+               with employee_id_input = ...
+               set @variables.verified = @outputs.verified
+               set @variables.contact_id = @outputs.contact_id
+               set @variables.department = @outputs.department
+
+         # If verification failed — stop and ask to retry
+         if @variables.verified == False:
+            | I could not find an account with that employee ID.
+            | Please double check your ID and try again.
+
+         # ── STEP 2: Intent classification ──────────────────
+         # LLM reasons here — this is where it has freedom.
+         # It reads the employee's message and sets one variable.
+         # It does not execute anything — just classifies.
+         if @variables.verified == True and @variables.requested_action == "":
+            | The employee is verified. Read their message carefully
+            | and set requested_action to exactly one of these values:
+            | "password_reset" — only if they explicitly asked to reset their password
+            | "software_access" — only if they explicitly asked for software or tool access
+            | "hardware" — only if they explicitly asked for hardware repair or replacement
+            | "question" — for any question, clarification, or anything else
+            | Do not assume intent. If unsure, always use "question".
+
+         # ── STEP 3: Handle questions ────────────────────────
+         # LLM answers freely. No flows called. No actions taken.
+         if @variables.requested_action == "question":
+            | Answer the employee's question helpfully and accurately.
+            | Do not call any actions or take any support action.
+            | End by asking if there is anything else you can help with.
+
+         # ── STEP 4: Password reset ──────────────────────────
+         # Confirmation gate before any irreversible action.
+         if @variables.requested_action == "password_reset" and @variables.action_confirmed == False:
+            | I can help you reset your password. This will immediately update
+            | your credentials across all connected applications.
+            | Please reply with YES to confirm you want to proceed with the password reset.
+
+         # Only fires after explicit YES — action_confirmed set by reasoning.actions
+         if @variables.requested_action == "password_reset" and @variables.action_confirmed == True:
+            run @actions.check_mfa_status
+               with contact_id = @variables.contact_id
+               set @variables.has_mfa = @outputs.has_mfa
+
+            if @variables.has_mfa == True:
+               run @actions.reset_password
+                  with contact_id = @variables.contact_id
+               | Your password has been successfully reset.
+               | You will receive a confirmation email shortly.
+
+            if @variables.has_mfa == False:
+               | Your account does not have MFA enabled.
+               | Password resets require MFA for security compliance.
+               | I am escalating this to the security team now.
+
+         # ── STEP 5: Software access ─────────────────────────
+         # Confirmation before ticket creation.
+         if @variables.requested_action == "software_access" and @variables.action_confirmed == False:
+            | I can create a software access request for you.
+            | Please specify which application you need access to, then
+            | reply with YES when you are ready for me to submit the request.
+
+         if @variables.requested_action == "software_access" and @variables.action_confirmed == True:
+            run @actions.raise_support_ticket
+               with contact_id = @variables.contact_id
+               with issue_type = "software_access"
+               with department = @variables.department
+               set @variables.ticket_number = @outputs.ticket_number
+
+            if @outputs.requires_approval == False:
+               | Your access request has been approved automatically.
+               | Ticket {!@variables.ticket_number} has been raised.
+               | You should receive access within 1 hour.
+
+            if @outputs.requires_approval == True:
+               | Your request requires manager approval.
+               | Ticket {!@variables.ticket_number} has been raised.
+               | Your manager will be notified within 15 minutes.
+
+         # ── STEP 6: Hardware ────────────────────────────────
+         # Warranty check runs deterministically first.
+         # Cost disclosed before confirmation requested.
+         if @variables.requested_action == "hardware" and @variables.action_confirmed == False:
+            run @actions.raise_support_ticket
+               with contact_id = @variables.contact_id
+               with issue_type = "hardware"
+               with department = @variables.department
+               set @variables.ticket_number = @outputs.ticket_number
+
+            if @outputs.chargeable == False:
+               | Your device is under warranty.
+               | Replacement will be arranged at no cost.
+               | Reply with YES to confirm you want to proceed with the hardware replacement.
+
+            if @outputs.chargeable == True:
+               | Your device is out of warranty.
+               | Replacement cost is $250 which will be charged to your department.
+               | Please reply with YES to confirm you want to proceed with the chargeable replacement.
+
+         if @variables.requested_action == "hardware" and @variables.action_confirmed == True:
+            | Your hardware replacement request has been confirmed.
+            | Ticket {!@variables.ticket_number} has been created.
+            | The IT team will contact you within 24 hours to arrange the replacement.
+
+      # ───────────────────────────────────────────────────
+      # REASONING ACTIONS (Tools)
+      # Exposed to the LLM — it can choose to call these.
+      # Used for slot filling and capturing YES confirmation.
+      # ───────────────────────────────────────────────────
+      actions:
+         # Captures explicit YES from the employee
+         # Only available when an action is pending confirmation
+         confirm_action: @utils.setVariables
+            description: "Capture the employee's explicit YES confirmation before proceeding with an irreversible action."
+            available when @variables.requested_action != "" and @variables.action_confirmed == False
+            with action_confirmed = ...
+
+         # Sets requested_action based on employee message
+         # Only available when intent has not yet been captured
+         capture_intent: @utils.setVariables
+            description: "Classify what the employee is explicitly requesting and set requested_action to the correct value."
+            available when @variables.verified == True and @variables.requested_action == ""
+            with requested_action = ...

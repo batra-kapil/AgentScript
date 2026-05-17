@@ -1,0 +1,28 @@
+{
+  "required" : [ "contact_id", "issue_type", "department" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "contact_id" : {
+      "title" : "Contact Id",
+      "description" : "Salesforce Contact Id of the employee",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "department" : {
+      "title" : "Department",
+      "description" : "Employee department for approval routing",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "issue_type" : {
+      "title" : "Issue Type",
+      "description" : "Type of issue. Must be exactly one of: password_reset, software_access, hardware",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

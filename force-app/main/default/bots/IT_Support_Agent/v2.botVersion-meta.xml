@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BotVersion xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>v2</fullName>
+    <articleAnswersGPTEnabled>false</articleAnswersGPTEnabled>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>Welcome to Acme Corp IT Support. Please share your employee ID to get started.</message>
+                <messageIdentifier>8d5508d9-7be7-4fa5-b6c3-7527020a7ac0</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>afb6e4b9-d98a-4a41-a766-b70d20f5b70f</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>9ca9d1a2-7c71-40ac-94ce-1918251cdbfb</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Welcome</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Welcome</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>Something went wrong on my end. Please contact IT directly at it@acmecorp.com.</message>
+                <messageIdentifier>70a48631-788c-40c2-b33d-ae0cc73e3990</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>7c52e8d4-cebd-4a8f-a4a4-5edd9236c8bb</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>e766971d-e368-4979-8623-fb232ec37d02</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Rich_Content_Error_Handling</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Error Handler</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <botDialogs>
+        <developerName>Transfer_To_Agent</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Transfer To Agent</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <citationsEnabled>false</citationsEnabled>
+    <company>Acme Corp is a software company with 500 employees across Engineering, Finance, and HR departments. We follow strict security and compliance policies for all IT support operations including mandatory identity verification before any support action, MFA enforcement for password resets, department-based software access approvals, and warranty-based hardware replacement policies.</company>
+    <conversationDefinitionPlanners>
+        <genAiPlannerName>IT_Support_Agent_v2</genAiPlannerName>
+    </conversationDefinitionPlanners>
+    <conversationSystemDialogs>
+        <dialog>Rich_Content_Error_Handling</dialog>
+        <type>ErrorHandling</type>
+    </conversationSystemDialogs>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>Whether the employee has explicitly confirmed an irreversible action by replying YES.</description>
+        <developerName>action_confirmed</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Action Confirmed</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The agent instructions</description>
+        <developerName>AgentScriptInternal_agent_instructions</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Agent Instructions</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>Runtime condition evaluation for if statements</description>
+        <developerName>AgentScriptInternal_condition</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Runtime Condition</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Salesforce Contact Id of the verified employee</description>
+        <developerName>contact_id</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Contact Id</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>Whether the employee has MFA enabled on their account</description>
+        <developerName>has_mfa</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Has Mfa</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The next topic to be visited</description>
+        <developerName>AgentScriptInternal_next_topic</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Next Topic</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Boolean</dataType>
+        <description>Whether the employee&apos;s identity has been confirmed</description>
+        <developerName>verified</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Verified</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The IT support request record ID created for the employee&apos;s request.</description>
+        <developerName>ticket_number</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Ticket Number</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Employee department — used for software access routing</description>
+        <developerName>department</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Department</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>What the employee explicitly asked for. Must be exactly one of: password_reset, software_access, hardware, or question.</description>
+        <developerName>requested_action</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Requested Action</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <defaultStdObjForContactIdFltrEnabled>false</defaultStdObjForContactIdFltrEnabled>
+    <entryDialog>Welcome</entryDialog>
+    <intentDisambiguationEnabled>false</intentDisambiguationEnabled>
+    <intentV3Enabled>false</intentV3Enabled>
+    <isScriptCompatibleAgent>true</isScriptCompatibleAgent>
+    <knowledgeActionEnabled>false</knowledgeActionEnabled>
+    <knowledgeFallbackEnabled>false</knowledgeFallbackEnabled>
+    <role>IT Support Specialist</role>
+    <smallTalkEnabled>false</smallTalkEnabled>
+    <staticPromptsEnabled>false</staticPromptsEnabled>
+    <stopRecPrompts>false</stopRecPrompts>
+    <stopWelcomePrompts>false</stopWelcomePrompts>
+    <surfacesEnabled>false</surfacesEnabled>
+    <toneType>Casual</toneType>
+</BotVersion>

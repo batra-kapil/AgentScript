@@ -1,0 +1,14 @@
+{
+  "required" : [ "employee_id_input" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "employee_id_input" : {
+      "title" : "Employee Id Input",
+      "description" : "Employee ID provided by the user",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}
