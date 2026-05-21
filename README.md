@@ -1,6 +1,6 @@
 # AgentScript — IT Support Agent with Salesforce Agent Script
 
-> Built by [Kapil Batra](https://www.linkedin.com/in/kapilbatra) | [SF Bolt YouTube Channel](https://www.youtube.com/@sfbolt)
+> Built by [Kapil Batra](https://www.linkedin.com/in/hellokapil) | [SF Bolt YouTube Channel](https://www.youtube.com/@salesforcebolt)
 
 This repository contains the complete source code for the **IT Support Agent** built using **Salesforce Agent Script** — demonstrated in the SF Bolt video series on Agentforce development.
 
@@ -403,8 +403,8 @@ WHERE CreatedDate = TODAY
 
 SF Bolt is a YouTube channel and LinkedIn brand focused on Salesforce and AI content — built by Kapil Batra, Salesforce MVP and Certified Application Architect.
 
-- YouTube: [SF Bolt](https://www.youtube.com/@sfbolt)
-- LinkedIn: [Kapil Batra](https://www.linkedin.com/in/kapilbatra)
+- YouTube: [SF Bolt](https://www.youtube.com/@salesforcebolt)
+- LinkedIn: [Kapil Batra](https://www.linkedin.com/in/hellokapil)
 - GitHub: [batra-kapil](https://github.com/batra-kapil)
 
 ---
